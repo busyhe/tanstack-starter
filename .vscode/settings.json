@@ -32,6 +32,7 @@
     "node_modules": true,
     "CHANGELOG.md": true,
     "**/pnpm-lock.yaml": true,
+    "**/routeTree.gen.ts": true
   },
   // 控制相关文件嵌套展示
   "explorer.fileNesting.enabled": true,
@@ -45,4 +46,10 @@
     "eslint.config.js": ".eslintignore,.eslintcache,.prettierignore,.prettierrc.*,.lintstagedrc.js",
     "tailwind.config.js": "postcss.*"
   },
+  "files.watcherExclude": {
+    "**/routeTree.gen.ts": true
+  },
+  "files.readonlyInclude": {
+    "**/routeTree.gen.ts": true
+  }
 }
