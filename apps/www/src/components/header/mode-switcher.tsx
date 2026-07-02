@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { MoonIcon, SunIcon } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { useTheme } from '@/components/theme-provider'
 import { Button } from '@workspace/ui/components/button'
 
 export function ModeSwitcher() {

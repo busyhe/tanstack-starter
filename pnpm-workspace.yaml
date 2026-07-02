@@ -3,6 +3,8 @@ packages:
   - packages/*
 
 catalog:
+  "@commitlint/cli": ^19.8.0
+  "@commitlint/config-conventional": ^19.8.0
   "@eslint/js": ^9.39.2
   "@radix-ui/react-slot": ^1.2.4
   "@tailwindcss/postcss": ^4.1.18
@@ -26,7 +28,6 @@ catalog:
   globals: ^17.0.0
   lefthook: ^2.0.13
   lucide-react: ^0.562.0
-  next-themes: ^0.4.6
   prettier: ^3.7.4
   react: 19.2.3
   react-dom: 19.2.3

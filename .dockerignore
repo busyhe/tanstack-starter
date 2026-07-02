@@ -1,0 +1,8 @@
+**/node_modules
+**/.turbo
+**/.output
+**/.tanstack
+**/.nitro
+**/dist
+.git
+Dockerfile

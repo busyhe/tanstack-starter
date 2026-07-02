@@ -1,5 +1,7 @@
+import { env } from '@/env'
+
 export function Analytics() {
-  const gaId = import.meta.env.VITE_GA_ID
+  const gaId = env.VITE_GA_ID
 
   if (!gaId) {
     return null

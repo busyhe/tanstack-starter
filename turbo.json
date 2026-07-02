@@ -17,16 +17,8 @@
         "dist/**"
       ]
     },
-    "lint": {
-      "dependsOn": [
-        "^lint"
-      ]
-    },
-    "check-types": {
-      "dependsOn": [
-        "^check-types"
-      ]
-    },
+    "lint": {},
+    "check-types": {},
     "test": {
       "dependsOn": [
         "^build"

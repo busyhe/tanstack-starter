@@ -4,7 +4,6 @@
   "version": "0.1.1",
   "scripts": {
     "build": "turbo build",
-    "changeset": "pnpm exec changeset",
     "check-types": "turbo check-types",
     "clean": "node ./scripts/clean.mjs",
     "commit": "czg",
@@ -16,6 +15,8 @@
     "test": "turbo test"
   },
   "devDependencies": {
+    "@commitlint/cli": "catalog:",
+    "@commitlint/config-conventional": "catalog:",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "bumpp": "catalog:",

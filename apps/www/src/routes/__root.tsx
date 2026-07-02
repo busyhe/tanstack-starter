@@ -1,7 +1,8 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import { HeadContent, Scripts, createRootRouteWithContext } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { Link } from '@tanstack/react-router'
+import type { QueryClient } from '@tanstack/react-query'
 import { Providers } from '@/components/providers'
 import { Analytics } from '@/components/analytics'
 import { Button } from '@workspace/ui/components/button'
@@ -9,7 +10,13 @@ import { siteConfig, META_THEME_COLORS } from '@/config/site'
 
 import appCss from '../styles.css?url'
 
-export const Route = createRootRoute({
+const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||((!t||t==='system')&&matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.classList.add(d?'dark':'light');r.style.colorScheme=d?'dark':'light'}catch(e){}})()`
+
+interface RouterContext {
+  queryClient: QueryClient
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
@@ -44,6 +51,7 @@ export const Route = createRootRoute({
       { rel: 'apple-touch-icon', href: '/logo192.png' },
       { rel: 'manifest', href: '/manifest.json' },
     ],
+    scripts: [{ children: THEME_INIT_SCRIPT }],
   }),
   shellComponent: RootDocument,
   notFoundComponent: NotFound,

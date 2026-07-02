@@ -1,4 +1,6 @@
-const url = import.meta.env.VITE_SITE_URL || 'http://localhost:3000'
+import { env } from '@/env'
+
+const url = env.VITE_SITE_URL || 'http://localhost:3000'
 
 export const siteConfig = {
   name: 'TanStack Starter',

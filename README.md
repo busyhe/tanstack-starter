@@ -70,6 +70,17 @@ pnpm format
 | `pnpm commit`      | 使用 czg 创建规范化提交       |
 | `pnpm release`     | 使用 bumpp 统一更新版本号     |
 
+## 部署
+
+`pnpm build` 产出 Nitro node-server 产物(`apps/www/.output`),可直接 `node apps/www/.output/server/index.mjs` 运行,或使用仓库根的 [Dockerfile](Dockerfile) 容器化:
+
+```bash
+docker build -t tanstack-starter .
+docker run -p 3000:3000 tanstack-starter
+```
+
+如需部署到 Vercel / Cloudflare 等平台,修改 Nitro preset 即可。
+
 ## 依赖管理
 
 本项目使用 pnpm **catalog** 统一管理依赖版本。新增公共依赖时，请先在 [pnpm-workspace.yaml](pnpm-workspace.yaml) 的 `catalog` 中声明版本，再在对应 package 中以 `"catalog:"` 引用。
