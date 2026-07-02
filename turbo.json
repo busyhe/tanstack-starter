@@ -11,8 +11,10 @@
         ".env*"
       ],
       "outputs": [
-        ".next/**",
-        "!.next/cache/**"
+        ".output/**",
+        ".tanstack/**",
+        ".nitro/**",
+        "dist/**"
       ]
     },
     "lint": {
@@ -25,13 +27,18 @@
         "^check-types"
       ]
     },
+    "test": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
     "dev": {
       "cache": false,
       "persistent": true
     }
   },
   "globalEnv": [
-    "NEXT_PUBLIC_GA_ID",
-    "NEXT_PUBLIC_SITE_URL"
+    "VITE_GA_ID",
+    "VITE_SITE_URL"
   ]
 }

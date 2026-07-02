@@ -64,6 +64,7 @@ pnpm format
 | `pnpm build`       | 构建所有应用与包              |
 | `pnpm lint`        | 运行 ESLint                   |
 | `pnpm check-types` | TypeScript 类型检查           |
+| `pnpm test`        | 运行 Vitest 测试              |
 | `pnpm format`      | Prettier 格式化               |
 | `pnpm clean`       | 清理构建产物与 `node_modules` |
 | `pnpm commit`      | 使用 czg 创建规范化提交       |
@@ -76,7 +77,7 @@ pnpm format
 ## Git 工作流
 
 - 提交信息遵循 [Conventional Commits](https://www.conventionalcommits.org/)，推荐使用 `pnpm commit`
-- [Lefthook](lefthook.yml) 在提交前自动执行 lint / 类型检查
+- [Lefthook](lefthook.yml) 在提交前自动执行 Prettier 格式化；lint / 类型检查 / 测试由 CI 执行
 - 版本发布使用 [bumpp](https://github.com/antfu-collective/bumpp)
 
 ## License

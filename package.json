@@ -1,5 +1,5 @@
 {
-  "name": "nextjs-starter",
+  "name": "tanstack-starter",
   "private": true,
   "version": "0.1.1",
   "scripts": {
@@ -12,7 +12,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo lint",
     "prepare": "git config --local core.editor cat",
-    "release": "LEFTHOOK=0 bumpp package.json apps/*/package.json --all"
+    "release": "LEFTHOOK=0 bumpp package.json apps/*/package.json --all",
+    "test": "turbo test"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
