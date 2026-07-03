@@ -1,7 +1,15 @@
 pre-commit:
   parallel: true
   commands:
-    lint:
+    format:
       run: pnpm prettier --cache --ignore-unknown --write {staged_files}
       glob: "*.{ts,tsx,md}"
       stage_fixed: true
+    lint:
+      # turbo-cached, so only changed packages are actually re-linted
+      run: pnpm lint
+
+pre-push:
+  commands:
+    check-types:
+      run: pnpm check-types

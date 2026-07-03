@@ -10,7 +10,7 @@ import { siteConfig, META_THEME_COLORS } from '@/config/site'
 
 import appCss from '../styles.css?url'
 
-const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||((!t||t==='system')&&matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.classList.add(d?'dark':'light');r.style.colorScheme=d?'dark':'light'}catch(e){}})()`
+const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem('theme');var m=t==='light'||t==='dark'?t:'system';var d=t==='dark'||(m==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.classList.add(d?'dark':'light');r.style.colorScheme=d?'dark':'light';r.dataset.theme=m}catch(e){}})()`
 
 interface RouterContext {
   queryClient: QueryClient

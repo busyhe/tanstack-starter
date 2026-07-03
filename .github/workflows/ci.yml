@@ -29,6 +29,9 @@ jobs:
           restore-keys: |
             turbo-${{ runner.os }}-
 
+      - name: Format Check
+        run: pnpm prettier --check "**/*.{ts,tsx,md}"
+
       - name: Lint
         run: pnpm lint
 

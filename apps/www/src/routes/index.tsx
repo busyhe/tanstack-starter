@@ -1,8 +1,24 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
+import { healthQueryOptions } from '@/lib/api/health'
 
 export const Route = createFileRoute('/')({ component: HomePage })
+
+/** Example of the queryOptions convention — see src/lib/api/health.ts */
+function ApiStatus() {
+  const { data, isError } = useQuery(healthQueryOptions())
+
+  return (
+    <p className="mt-6 text-xs font-medium text-muted-foreground">
+      API health:{' '}
+      <span className={isError ? 'text-destructive' : 'text-foreground'}>
+        {isError ? 'unreachable' : (data?.status ?? 'checking…')}
+      </span>
+    </p>
+  )
+}
 
 function HomePage() {
   return (
@@ -22,6 +38,7 @@ function HomePage() {
               <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
                 A clean starter surface with TanStack Router, Tailwind CSS, and shadcn/ui ready to customize.
               </p>
+              <ApiStatus />
             </div>
           </div>
         </section>
