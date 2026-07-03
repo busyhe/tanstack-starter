@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap');
+/* Font stylesheet is loaded via <link> in __root.tsx (preconnect + non-blocking) instead of a render-blocking CSS @import. */
 @import '@workspace/ui/globals.css';
 
 @theme {

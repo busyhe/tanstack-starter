@@ -46,6 +46,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { name: 'twitter:creator', content: '@busyhe' },
     ],
     links: [
+      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+      { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap',
+      },
       { rel: 'stylesheet', href: appCss },
       { rel: 'icon', href: '/favicon.ico' },
       { rel: 'apple-touch-icon', href: '/logo192.png' },
@@ -63,9 +69,9 @@ function NotFound() {
       <section className="bg-background">
         <div className="flex min-h-screen flex-col items-center justify-center text-center text-foreground">
           <h1 className="mt-8 text-4xl md:text-6xl">Page Not Found</h1>
-          <Link to="/">
-            <Button variant="link">Back to home</Button>
-          </Link>
+          <Button asChild variant="link">
+            <Link to="/">Back to home</Link>
+          </Button>
         </div>
       </section>
     </main>

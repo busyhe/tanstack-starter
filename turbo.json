@@ -30,6 +30,8 @@
     }
   },
   "globalEnv": [
+    "DEV",
+    "PROD",
     "VITE_GA_ID",
     "VITE_SITE_URL"
   ]

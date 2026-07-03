@@ -10,7 +10,7 @@
     "dev": "turbo dev",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo lint",
-    "prepare": "git config --local core.editor cat",
+    "prepare": "git config --local core.editor cat || exit 0",
     "release": "LEFTHOOK=0 bumpp package.json apps/*/package.json --all",
     "test": "turbo test"
   },
