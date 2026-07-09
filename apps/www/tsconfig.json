@@ -2,7 +2,6 @@
   "extends": "../../packages/typescript-config/react-library.json",
   "include": ["**/*.ts", "**/*.tsx"],
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },

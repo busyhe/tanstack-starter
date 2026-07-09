@@ -17,7 +17,7 @@
     "eslint-plugin-react-hooks": "catalog:",
     "eslint-plugin-turbo": "catalog:",
     "globals": "catalog:",
-    "typescript": "catalog:",
+    "typescript": "catalog:eslint-parser",
     "typescript-eslint": "catalog:"
   }
 }
