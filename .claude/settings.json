@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm check-types)",
+      "Bash(pnpm test)",
+      "Bash(pnpm build)",
+      "Bash(pnpm format)",
+      "Bash(pnpm --filter:*)"
+    ],
+    "deny": [
+      "Edit(apps/www/src/routeTree.gen.ts)",
+      "Edit(pnpm-lock.yaml)",
+      "Read(**/.env)",
+      "Read(**/.env.local)",
+      "Read(**/*.local)"
+    ]
+  }
+}

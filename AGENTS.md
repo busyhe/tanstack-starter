@@ -80,6 +80,13 @@ pnpm release        # bumpp 发版(通常无需代理执行)
 
 `node_modules`、`.turbo`、`dist`、`apps/www/.output`、`apps/www/.nitro`、`apps/www/.tanstack`、`apps/www/src/routeTree.gen.ts`,以及本地环境文件(`.env`、`.env.local`、`*.local`)。
 
+## AI 辅助文件
+
+- `CLAUDE.md`(根目录及 `packages/ui/`)只有一行 `@AGENTS.md`,让 Claude Code 复用本文件,不要往里写内容。
+- 子目录约定写在就近的 `AGENTS.md`(如 `packages/ui/AGENTS.md`)。
+- Skills 单一来源在 `.claude/skills/`(`new-route`、`new-ui-component`),`.agents/skills` 是指向它的软链供 Codex 读取;修改 skill 只改 `.claude/skills/` 下的 SKILL.md。
+- `.claude/settings.json` 预授权了常用 pnpm 命令,并禁止编辑 `routeTree.gen.ts`、`pnpm-lock.yaml` 和读取 `.env*` 本地文件。
+
 ## 工作方式
 
 - 先读相关代码和配置再改;保持变更聚焦,不做无关重构;不覆盖用户未要求修改的本地改动。
