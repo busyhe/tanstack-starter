@@ -2,6 +2,9 @@
 
 一个面向生产环境的 [TanStack Start](https://tanstack.com/start) 全栈应用脚手架，使用 pnpm + Turborepo 管理 Monorepo。内置 SSR 数据预取、共享 UI、类型安全环境变量、健康检查、安全响应头、单元测试、覆盖率和端到端测试。
 
+架构审计、问题清单、关键决策、验证记录和后续路线图见
+[`docs/architecture-hardening.md`](docs/architecture-hardening.md)。
+
 ## 技术栈
 
 - **应用框架**：[TanStack Start](https://tanstack.com/start) + [TanStack Router](https://tanstack.com/router) + [TanStack Query](https://tanstack.com/query)
