@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ModeSwitcher } from '@/components/header/mode-switcher'
@@ -24,10 +24,12 @@ describe('ModeSwitcher', () => {
     const root = document.documentElement
 
     // Defaults to system when nothing is stored.
+    expect(button.getAttribute('aria-label')).toContain('system selected; switch to light')
     fireEvent.click(button)
     expect(localStorage.getItem('theme')).toBe('light')
     expect(root.classList.contains('light')).toBe(true)
     expect(root.dataset.theme).toBe('light')
+    expect(button.getAttribute('aria-label')).toContain('light selected; switch to dark')
 
     fireEvent.click(button)
     expect(localStorage.getItem('theme')).toBe('dark')
@@ -48,5 +50,32 @@ describe('ModeSwitcher', () => {
     // dark → next in cycle is system.
     fireEvent.click(button)
     expect(localStorage.getItem('theme')).toBe('system')
+  })
+
+  it('continues to work when browser storage is unavailable', () => {
+    const getItem = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new DOMException('Storage unavailable', 'SecurityError')
+    })
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Storage unavailable', 'SecurityError')
+    })
+
+    try {
+      const button = renderSwitcher()
+      expect(() => fireEvent.click(button)).not.toThrow()
+      expect(document.documentElement.dataset.theme).toBe('light')
+    } finally {
+      getItem.mockRestore()
+      setItem.mockRestore()
+    }
+  })
+
+  it('synchronizes theme changes from another tab', () => {
+    renderSwitcher()
+
+    window.dispatchEvent(new StorageEvent('storage', { key: 'theme', newValue: 'dark' }))
+
+    expect(document.documentElement.dataset.theme).toBe('dark')
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
   })
 })

@@ -1,7 +1,9 @@
-/* Font stylesheet is loaded via <link> in __root.tsx (preconnect + non-blocking) instead of a render-blocking CSS @import. */
+@import 'tailwindcss' source(none);
 @import '@workspace/ui/globals.css';
+@source './**/*.{ts,tsx}';
+@source '../../../packages/ui/src/**/*.{ts,tsx}';
 
 @theme {
-  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
 }

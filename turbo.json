@@ -3,36 +3,46 @@
   "ui": "tui",
   "tasks": {
     "build": {
-      "dependsOn": [
-        "^build"
+      "dependsOn": ["^build"],
+      "env": [
+        "DEV",
+        "NODE_ENV",
+        "PROD",
+        "VITE_GA_ID",
+        "VITE_GITHUB_URL",
+        "VITE_HOMEPAGE_URL",
+        "VITE_SITE_AUTHOR",
+        "VITE_SITE_DESCRIPTION",
+        "VITE_SITE_NAME",
+        "VITE_SITE_URL",
+        "VITE_TWITTER_HANDLE"
       ],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        ".env*"
-      ],
-      "outputs": [
-        ".output/**",
-        ".tanstack/**",
-        ".nitro/**",
-        "dist/**"
-      ]
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".output/**", ".tanstack/**", ".nitro/**", "dist/**"]
     },
-    "lint": {},
-    "check-types": {},
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
     "test": {
-      "dependsOn": [
-        "^build"
-      ]
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"]
+    },
+    "test:coverage": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["coverage/**"]
+    },
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "env": ["CI"],
+      "cache": false
     },
     "dev": {
       "cache": false,
       "persistent": true
     }
-  },
-  "globalEnv": [
-    "DEV",
-    "PROD",
-    "VITE_GA_ID",
-    "VITE_SITE_URL"
-  ]
+  }
 }

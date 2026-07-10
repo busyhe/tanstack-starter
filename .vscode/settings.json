@@ -3,11 +3,7 @@
     "source.fixAll.eslint": "explicit",
     "source.organizeImports": "never"
   },
-  "cSpell.words": [
-    "bumpp",
-    "infile",
-    "lefthook"
-  ],
+  "cSpell.words": ["bumpp", "infile", "lefthook"],
   // 在使用搜索功能时，将这些文件夹/文件排除在外
   "search.exclude": {
     "**/node_modules": true,

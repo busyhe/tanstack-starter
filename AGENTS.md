@@ -15,7 +15,7 @@ pnpm + Turborepo monorepo,基于 TanStack Start。
 
 ## 基本要求
 
-- Node.js `>=20`;包管理器固定为 `pnpm@10.27.0`,禁止用 npm/yarn/bun 改写锁文件。
+- Node.js `>=22.12.0`;包管理器固定为 `pnpm@10.27.0`,禁止用 npm/yarn/bun 改写锁文件。
 - monorepo 命令从仓库根目录运行;单包操作用 `pnpm --filter <name> <script>`(如 `pnpm --filter www test`、`pnpm --filter @workspace/ui lint`)。
 - 遵循现有代码风格:TypeScript 严格模式、ESM,格式由 Prettier 决定(单引号、无分号)。
 
@@ -28,7 +28,7 @@ pnpm build          # 构建
 pnpm lint           # ESLint(--max-warnings 0)
 pnpm check-types    # tsc --noEmit
 pnpm test           # Vitest
-pnpm format         # Prettier 格式化 ts/tsx/md
+pnpm format         # Prettier 格式化仓库内所有受支持文件
 pnpm commit         # czg 交互式提交
 pnpm release        # bumpp 发版(通常无需代理执行)
 ```
@@ -36,16 +36,16 @@ pnpm release        # bumpp 发版(通常无需代理执行)
 ## Git 工作流
 
 - 提交信息遵循 Conventional Commits(commitlint 校验)。
-- lefthook 钩子:pre-commit 自动 Prettier + `pnpm lint`,pre-push 跑 `pnpm check-types`。提交失败时先看钩子输出。
+- lefthook 钩子:pre-commit 检查 Prettier + `pnpm lint`,pre-push 跑 `pnpm check-types`。格式检查失败时先运行 `pnpm format`,提交失败时先看钩子输出。
 
 ## 目录与文件约定(apps/www)
 
-- `src/routes`:TanStack Router 文件路由,新页面/API route 放这里,用 `createFileRoute`;API route 用扁平点号命名(如 `api.health.tsx`)。
+- `src/routes`:TanStack Router 文件路由,新页面/API route 放这里,用 `createFileRoute`;API route 用扁平点号命名(如 `api.health.tsx`)。新增公开页面需用 `src/lib/seo.ts` 声明 canonical,并同步 `src/config/sitemap.ts`;API route 不加入 sitemap。
 - `src/routeTree.gen.ts`:自动生成,禁止手动编辑。
 - `src/router.tsx`:QueryClient、路由创建和 SSR query 集成。
 - `src/lib/api/*`:共享数据获取,优先导出 `queryOptions` factory,在组件或 loader 中复用。
 - `src/config/site.ts`:站点级配置。
-- `src/env.ts`:所有 `VITE_*` 环境变量必须在此用 zod 声明和校验,业务代码禁止直接读 `import.meta.env`。`VITE_SITE_URL` 生产环境必填;新增变量同步更新 `.env.example` 和 `turbo.json` 的 `globalEnv`。不要提交真实 `.env` 文件。
+- `src/env-schema.ts` / `src/env.ts`:所有 `VITE_*` 环境变量必须在 schema 中用 zod 声明,由 Vite 配置在启动/构建前校验,业务代码只从 `env.ts` 读取。`VITE_SITE_URL` 生产构建必填;新增变量同步更新 `.env.example` 和 `turbo.json` 对应任务的 `env`。不要提交真实 `.env` 文件。
 - `src/styles.css`:只导入共享全局样式并定义应用级 theme 扩展;Tailwind tokens 和 shadcn/ui 主题变量在 `packages/ui/src/globals.css`。
 
 ## 导入约定
@@ -69,7 +69,7 @@ pnpm release        # bumpp 发版(通常无需代理执行)
 
 ## 测试与校验
 
-- 涉及应用逻辑或组件行为时补充 Vitest + Testing Library 测试,测试文件与组件同目录(`*.test.tsx`)。
+- 涉及应用逻辑或组件行为时补充 Vitest + Testing Library 测试,测试文件与源码同目录(`*.test.{ts,tsx}`)。
 - 测试环境为 jsdom,配置见 `apps/www/vitest.config.ts` 和 `vitest.setup.ts`。
 - 改动后按影响范围校验:
   - 仅 `apps/www`:`pnpm --filter www lint && pnpm --filter www check-types`,必要时加 `test`。

@@ -1,4 +1,4 @@
-import { HeadContent, Scripts, createRootRouteWithContext } from '@tanstack/react-router'
+import { HeadContent, Scripts, createRootRouteWithContext, useRouter } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { Link } from '@tanstack/react-router'
@@ -6,62 +6,76 @@ import type { QueryClient } from '@tanstack/react-query'
 import { Providers } from '@/components/providers'
 import { Analytics } from '@/components/analytics'
 import { Button } from '@workspace/ui/components/button'
-import { siteConfig, META_THEME_COLORS } from '@/config/site'
+import { siteConfig } from '@/config/site'
+import { META_THEME_COLORS, THEME_STORAGE_KEY } from '@/config/theme'
+import type { ErrorComponentProps } from '@tanstack/react-router'
 
 import appCss from '../styles.css?url'
 
-const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem('theme');var m=t==='light'||t==='dark'?t:'system';var d=t==='dark'||(m==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.classList.add(d?'dark':'light');r.style.colorScheme=d?'dark':'light';r.dataset.theme=m}catch(e){}})()`
+const THEME_INIT_SCRIPT = `(function(){var t;try{t=localStorage.getItem('${THEME_STORAGE_KEY}')}catch(e){}var m=t==='light'||t==='dark'?t:'system';var d=m==='dark'||(m==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;r.classList.add(d?'dark':'light');r.dataset.theme=m;var c=document.querySelector('meta[name="theme-color"]');if(c)c.setAttribute('content',d?'${META_THEME_COLORS.dark}':'${META_THEME_COLORS.light}')})()`
 
 interface RouterContext {
   queryClient: QueryClient
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: siteConfig.name },
-      { name: 'description', content: siteConfig.description },
-      { name: 'keywords', content: 'TanStack,React,Starter' },
-      { name: 'author', content: 'busyhe' },
-      { name: 'creator', content: 'busyhe' },
-      { name: 'theme-color', content: META_THEME_COLORS.light, media: '(prefers-color-scheme: light)' },
-      { name: 'theme-color', content: META_THEME_COLORS.dark, media: '(prefers-color-scheme: dark)' },
-      // Open Graph
-      { property: 'og:type', content: 'website' },
-      { property: 'og:locale', content: 'en_US' },
-      { property: 'og:url', content: siteConfig.url },
-      { property: 'og:title', content: siteConfig.name },
-      { property: 'og:description', content: siteConfig.description },
-      { property: 'og:site_name', content: siteConfig.name },
-      { property: 'og:image', content: siteConfig.ogImage },
-      { property: 'og:image:width', content: '512' },
-      { property: 'og:image:height', content: '512' },
-      // Twitter
-      { name: 'twitter:card', content: 'summary_large_image' },
-      { name: 'twitter:title', content: siteConfig.name },
-      { name: 'twitter:description', content: siteConfig.description },
-      { name: 'twitter:image', content: siteConfig.ogImage },
-      { name: 'twitter:creator', content: '@busyhe' },
-    ],
-    links: [
-      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-      { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
-      {
-        rel: 'stylesheet',
-        href: 'https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap',
-      },
-      { rel: 'stylesheet', href: appCss },
-      { rel: 'icon', href: '/favicon.ico' },
-      { rel: 'apple-touch-icon', href: '/logo192.png' },
-      { rel: 'manifest', href: '/manifest.json' },
-    ],
-    scripts: [{ children: THEME_INIT_SCRIPT }],
-  }),
+  head: () => {
+    return {
+      meta: [
+        { charSet: 'utf-8' },
+        { title: siteConfig.name },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: siteConfig.description },
+        { name: 'keywords', content: 'TanStack Start,React,TypeScript' },
+        ...(siteConfig.author
+          ? [
+              { name: 'author', content: siteConfig.author },
+              { name: 'creator', content: siteConfig.author },
+            ]
+          : []),
+        { name: 'theme-color', content: META_THEME_COLORS.light },
+      ],
+      links: [
+        { rel: 'stylesheet', href: appCss },
+        { rel: 'icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', href: '/logo192.png' },
+        { rel: 'manifest', href: '/manifest.json' },
+      ],
+      scripts: [{ children: THEME_INIT_SCRIPT }],
+    }
+  },
   shellComponent: RootDocument,
   notFoundComponent: NotFound,
+  errorComponent: RootError,
+  onError: reportRouteError,
+  onCatch: reportRouteError,
 })
+
+function reportRouteError(error: unknown) {
+  console.error('Route error', error)
+}
+
+function RootError({ error }: ErrorComponentProps) {
+  const router = useRouter()
+
+  return (
+    <main className="flex min-h-svh items-center justify-center bg-background px-4 text-foreground">
+      <section className="max-w-lg text-center" aria-live="polite">
+        <h1 className="text-3xl font-semibold">Something went wrong</h1>
+        <p className="mt-4 text-muted-foreground">The page could not be loaded. Please retry or return home.</p>
+        {import.meta.env.DEV && <pre className="mt-4 overflow-auto text-left text-sm">{error.message}</pre>}
+        <div className="mt-6 flex justify-center gap-2">
+          <Button type="button" onClick={() => void router.invalidate({ forcePending: true })}>
+            Retry
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/">Back to home</Link>
+          </Button>
+        </div>
+      </section>
+    </main>
+  )
+}
 
 function NotFound() {
   return (

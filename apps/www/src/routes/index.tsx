@@ -3,8 +3,15 @@ import { useQuery } from '@tanstack/react-query'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { healthQueryOptions } from '@/lib/api/health'
+import { createSeo } from '@/lib/seo'
 
-export const Route = createFileRoute('/')({ component: HomePage })
+export const Route = createFileRoute('/')({
+  head: () => createSeo(),
+  loader: async ({ context }) => {
+    await context.queryClient.ensureQueryData(healthQueryOptions())
+  },
+  component: HomePage,
+})
 
 /** Example of the queryOptions convention — see src/lib/api/health.ts */
 function ApiStatus() {

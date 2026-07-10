@@ -1,0 +1,6 @@
+export const THEME_STORAGE_KEY = 'theme'
+
+export const META_THEME_COLORS = {
+  light: '#ffffff',
+  dark: '#09090b',
+} as const

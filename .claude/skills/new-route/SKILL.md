@@ -12,8 +12,12 @@ description: 在 apps/www 新增页面路由或 API route(TanStack Router 文件
 
    ```tsx
    import { createFileRoute } from '@tanstack/react-router'
+   import { createSeo } from '@/lib/seo'
 
-   export const Route = createFileRoute('/about')({ component: AboutPage })
+   export const Route = createFileRoute('/about')({
+     head: () => createSeo({ path: '/about', title: 'About' }),
+     component: AboutPage,
+   })
 
    function AboutPage() {
      return <main>...</main>
@@ -22,6 +26,7 @@ description: 在 apps/www 新增页面路由或 API route(TanStack Router 文件
 
 3. 需要数据时:在 `src/lib/api/<name>.ts` 导出 `queryOptions` factory(含响应类型),组件用 `useQuery(xxxQueryOptions())`;需要 SSR/预加载时在 route `loader` 中 `queryClient.ensureQueryData(xxxQueryOptions())`(router.tsx 的 ssr-query 集成会自动脱水/复水)。参考 `src/lib/api/health.ts`。
 4. 布局复用 `SiteHeader` / `SiteFooter`(`@/components/*`),样式用现有 design tokens。
+5. 可公开索引的页面必须用 `createSeo` 声明自身 canonical,并把静态 URL 加入 `src/config/sitemap.ts`;动态页面需列出可索引的具体 URL。非公开页面不要加入 sitemap,并显式声明 `noindex`。
 
 ## API route
 
@@ -42,4 +47,5 @@ export const Route = createFileRoute('/api/example')({
 ## 注意与校验
 
 - `src/routeTree.gen.ts` 由 dev/build 自动生成,禁止手动编辑;类型报错找不到新路由时先跑 `pnpm --filter www dev` 或 `build` 触发生成。
+- 新增页面时确认 SEO canonical 和 `src/config/sitemap.ts` 同步;API route 不加入 sitemap。
 - 完成后运行:`pnpm --filter www lint && pnpm --filter www check-types`,有逻辑时补 `*.test.tsx` 并跑 `pnpm --filter www test`。

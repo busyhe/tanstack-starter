@@ -2,6 +2,10 @@
   "name": "@workspace/eslint-config",
   "type": "module",
   "private": true,
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint . --max-warnings 0"
+  },
   "exports": {
     "./base": "./base.js",
     "./react-internal": "./react-internal.js"

@@ -3,26 +3,42 @@ name: CI
 on:
   pull_request:
     branches: [main]
+  merge_group:
   push:
     branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   ci:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VITE_SITE_URL: https://example.com
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          node-version: 22
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.22.3
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Install Playwright Chromium
+        run: pnpm --filter www exec playwright install --with-deps chromium
+
       - name: Turborepo cache
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: .turbo
           key: turbo-${{ runner.os }}-${{ github.sha }}
@@ -30,7 +46,15 @@ jobs:
             turbo-${{ runner.os }}-
 
       - name: Format Check
-        run: pnpm prettier --check "**/*.{ts,tsx,md}"
+        run: pnpm format:check
+
+      - name: Commitlint (pull request)
+        if: github.event_name == 'pull_request'
+        run: pnpm exec commitlint --from "${{ github.event.pull_request.base.sha }}" --to "${{ github.event.pull_request.head.sha }}" --verbose
+
+      - name: Commitlint (push)
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        run: pnpm exec commitlint --from "${{ github.event.before }}" --to "${{ github.sha }}" --verbose
 
       - name: Lint
         run: pnpm lint
@@ -39,7 +63,26 @@ jobs:
         run: pnpm check-types
 
       - name: Test
-        run: pnpm test
+        run: pnpm test:coverage
 
       - name: Build
         run: pnpm build
+
+      - name: Browser E2E
+        run: pnpm test:e2e
+
+      - name: Docker smoke test
+        run: |
+          docker build \
+            --build-arg VITE_SITE_URL="${VITE_SITE_URL}" \
+            --build-arg APP_VERSION="${GITHUB_SHA}" \
+            --tag tanstack-starter:smoke .
+          container_id="$(docker run --detach --publish 127.0.0.1:3101:3000 tanstack-starter:smoke)"
+          cleanup() {
+            docker logs "${container_id}" || true
+            docker rm --force "${container_id}" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          curl --fail --silent --show-error \
+            --retry 20 --retry-delay 1 --retry-all-errors \
+            http://127.0.0.1:3101/api/health/ready

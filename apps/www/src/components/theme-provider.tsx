@@ -1,8 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { META_THEME_COLORS, THEME_STORAGE_KEY } from '@/config/theme'
 
 export type Theme = 'light' | 'dark' | 'system'
-
-const STORAGE_KEY = 'theme'
 
 interface ThemeContextValue {
   theme: Theme
@@ -18,24 +17,30 @@ function getSystemTheme(): 'light' | 'dark' {
 
 function getStoredTheme(): Theme {
   if (typeof window === 'undefined') return 'system'
-  const stored = localStorage.getItem(STORAGE_KEY)
-  return stored === 'light' || stored === 'dark' ? stored : 'system'
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY)
+    return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system'
+  } catch {
+    return 'system'
+  }
 }
 
 function applyTheme(resolved: 'light' | 'dark', theme: Theme) {
   const root = document.documentElement
   root.classList.remove('light', 'dark')
   root.classList.add(resolved)
-  root.style.colorScheme = resolved
   // Exposes the *selected* mode (incl. 'system') so CSS can target it,
   // e.g. the mode-switcher icons. Kept in sync with the inline init script.
   root.dataset.theme = theme
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute('content', resolved === 'dark' ? META_THEME_COLORS.dark : META_THEME_COLORS.light)
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Lazy initializers read localStorage synchronously on the client, so no
-  // post-hydration setState is needed (first paint is handled by the inline
-  // script in __root). On the server they fall back to 'system'/undefined.
+  // Lazy initializers read localStorage synchronously on the client. The mode
+  // switcher's dynamic label explicitly suppresses this expected SSR mismatch;
+  // first-paint classes are already applied by the inline script in __root.
   const [theme, setThemeState] = useState<Theme>(getStoredTheme)
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark' | undefined>(() => {
     if (typeof window === 'undefined') return undefined
@@ -56,9 +61,27 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return () => mql.removeEventListener('change', onChange)
   }, [theme])
 
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== THEME_STORAGE_KEY) return
+      const next = event.newValue === 'light' || event.newValue === 'dark' ? event.newValue : 'system'
+      const resolved = next === 'system' ? getSystemTheme() : next
+      setThemeState(next)
+      setResolvedTheme(resolved)
+      applyTheme(resolved, next)
+    }
+
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
   const setTheme = useCallback((next: Theme) => {
     setThemeState(next)
-    localStorage.setItem(STORAGE_KEY, next)
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, next)
+    } catch {
+      // Storage may be disabled by browser privacy settings; the in-memory theme still works.
+    }
     const resolved = next === 'system' ? getSystemTheme() : next
     setResolvedTheme(resolved)
     applyTheme(resolved, next)

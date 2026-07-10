@@ -4,13 +4,31 @@ import { SiteFooter } from '@/components/site-footer'
 import { siteConfig } from '@/config/site'
 
 describe('SiteFooter', () => {
-  it('renders attribution links', () => {
-    render(<SiteFooter />)
+  it('renders scaffold-safe attribution', () => {
+    const config = {
+      ...siteConfig,
+      name: 'Example product',
+      author: undefined,
+      links: { homepage: undefined, github: undefined },
+    }
+    const { container } = render(<SiteFooter config={config} />)
 
-    const homepageLink = screen.getByRole('link', { name: 'busyhe' })
-    expect(homepageLink.getAttribute('href')).toBe(siteConfig.links.homepage)
+    expect(container.textContent).toContain('Example product')
+    expect(screen.queryByRole('link', { name: 'GitHub' })).toBeNull()
+  })
 
-    const githubLink = screen.getByRole('link', { name: 'GitHub' })
-    expect(githubLink.getAttribute('href')).toBe(siteConfig.links.github)
+  it('renders configured author and source links', () => {
+    const config = {
+      ...siteConfig,
+      author: 'Example team',
+      links: {
+        homepage: 'https://example.com/team',
+        github: 'https://github.com/example/project',
+      },
+    }
+    render(<SiteFooter config={config} />)
+
+    expect(screen.getByRole('link', { name: 'Example team' }).getAttribute('href')).toBe(config.links.homepage)
+    expect(screen.getByRole('link', { name: 'GitHub' }).getAttribute('href')).toBe(config.links.github)
   })
 })

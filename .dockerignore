@@ -4,5 +4,14 @@
 **/.tanstack
 **/.nitro
 **/dist
+**/coverage
+**/.env
+**/.env.*
+!**/.env.example
+**/*.local
 .git
+.agents
+.claude
+.codex
+.vscode
 Dockerfile

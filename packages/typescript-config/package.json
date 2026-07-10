@@ -1,8 +1,5 @@
 {
   "name": "@workspace/typescript-config",
   "private": true,
-  "license": "PROPRIETARY",
-  "publishConfig": {
-    "access": "public"
-  }
+  "license": "MIT"
 }

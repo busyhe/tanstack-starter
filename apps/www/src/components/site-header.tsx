@@ -12,12 +12,14 @@ export function SiteHeader() {
           <MainNav />
           <div className="ml-auto flex items-center gap-2 md:flex-1 md:justify-end">
             <nav className="flex items-center gap-0.5">
-              <Button asChild variant="ghost" size="icon" className="h-8 w-8 px-0">
-                <a href={siteConfig.links.github} target="_blank" rel="noreferrer">
-                  <Github className="size-4" />
-                  <span className="sr-only">GitHub</span>
-                </a>
-              </Button>
+              {siteConfig.links.github && (
+                <Button asChild variant="ghost" size="icon" className="h-8 w-8 px-0">
+                  <a href={siteConfig.links.github} target="_blank" rel="noreferrer">
+                    <Github className="size-4" />
+                    <span className="sr-only">GitHub</span>
+                  </a>
+                </Button>
+              )}
               <ModeSwitcher />
             </nav>
           </div>

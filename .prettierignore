@@ -1,6 +1,13 @@
 **/routeTree.gen.ts
+**/*.local
+.claude/settings.local.json
+**/.env
+**/.env.*
 pnpm-lock.yaml
 dist
 .output
 .nitro
 .tanstack
+coverage
+playwright-report
+test-results

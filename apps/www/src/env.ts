@@ -1,13 +1,19 @@
-import { z } from 'zod'
+import type { ClientEnv } from '@/env-schema'
 
 /**
- * All VITE_* environment variables must be declared and validated here.
+ * All VITE_* environment variables must be declared in env-schema.ts and validated by Vite.
  * Read env values from this module only — never from import.meta.env directly.
  */
-const envSchema = z.object({
-  // Required in production so og:url / og:image never silently point at localhost.
-  VITE_SITE_URL: import.meta.env.PROD ? z.url() : z.url().optional(),
-  VITE_GA_ID: z.string().optional(),
-})
+const optional = (value: string | undefined) => value?.trim() || undefined
+const siteUrl = optional(import.meta.env.VITE_SITE_URL)
 
-export const env = envSchema.parse(import.meta.env)
+export const env: ClientEnv = {
+  VITE_SITE_URL: siteUrl ? new URL(siteUrl).origin : undefined,
+  VITE_GA_ID: optional(import.meta.env.VITE_GA_ID),
+  VITE_SITE_NAME: optional(import.meta.env.VITE_SITE_NAME),
+  VITE_SITE_DESCRIPTION: optional(import.meta.env.VITE_SITE_DESCRIPTION),
+  VITE_SITE_AUTHOR: optional(import.meta.env.VITE_SITE_AUTHOR),
+  VITE_HOMEPAGE_URL: optional(import.meta.env.VITE_HOMEPAGE_URL),
+  VITE_GITHUB_URL: optional(import.meta.env.VITE_GITHUB_URL),
+  VITE_TWITTER_HANDLE: optional(import.meta.env.VITE_TWITTER_HANDLE),
+}

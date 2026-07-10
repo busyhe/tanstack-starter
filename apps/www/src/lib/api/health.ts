@@ -1,4 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
+import { createServerFn, createServerOnlyFn } from '@tanstack/react-start'
+import { z } from 'zod'
+import { getServerEnv } from '@/env.server'
 
 /**
  * Data-fetching convention for this app:
@@ -16,14 +19,37 @@ import { queryOptions } from '@tanstack/react-query'
 export interface HealthResponse {
   status: 'ok'
   timestamp: string
+  version: string
 }
+
+let responseSchema: z.ZodType<HealthResponse> | undefined
+
+const getHealthResponseSchema = createServerOnlyFn(
+  () =>
+    (responseSchema ??= z.object({
+      status: z.literal('ok'),
+      timestamp: z.iso.datetime(),
+      version: z.string(),
+    })),
+)
+
+export const parseHealthResponse = createServerOnlyFn((value: unknown) => getHealthResponseSchema().parse(value))
+
+export const getHealthSnapshot = createServerOnlyFn(() => {
+  const { APP_VERSION } = getServerEnv()
+
+  return parseHealthResponse({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    version: APP_VERSION,
+  })
+})
+
+// Use POST for the RPC transport so browsers and intermediaries never heuristically cache health data.
+export const getHealth = createServerFn({ method: 'POST' }).handler(() => getHealthSnapshot())
 
 export const healthQueryOptions = () =>
   queryOptions({
     queryKey: ['health'],
-    queryFn: async (): Promise<HealthResponse> => {
-      const res = await fetch('/api/health')
-      if (!res.ok) throw new Error(`Health check failed with status ${res.status}`)
-      return res.json() as Promise<HealthResponse>
-    },
+    queryFn: ({ signal }): Promise<HealthResponse> => getHealth({ signal }),
   })

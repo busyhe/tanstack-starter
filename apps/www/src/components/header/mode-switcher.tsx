@@ -16,17 +16,24 @@ const CYCLE: Record<Theme, Theme> = {
  */
 export function ModeSwitcher() {
   const { theme, setTheme } = useTheme()
+  const nextTheme = CYCLE[theme]
 
   const cycleTheme = useCallback(() => {
-    setTheme(CYCLE[theme])
-  }, [theme, setTheme])
+    setTheme(nextTheme)
+  }, [nextTheme, setTheme])
 
   return (
-    <Button variant="ghost" size="icon" className="group/toggle h-8 w-8 px-0" onClick={cycleTheme}>
+    <Button
+      variant="ghost"
+      size="icon"
+      className="group/toggle h-8 w-8 px-0"
+      aria-label={`Toggle theme: ${theme} selected; switch to ${nextTheme}`}
+      suppressHydrationWarning
+      onClick={cycleTheme}
+    >
       <SunIcon className="hidden [html[data-theme=light]_&]:block" />
       <MoonIcon className="hidden [html[data-theme=dark]_&]:block" />
       <MonitorIcon className="hidden [html[data-theme=system]_&]:block" />
-      <span className="sr-only">Toggle theme (light / dark / system)</span>
     </Button>
   )
 }

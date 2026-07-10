@@ -1,9 +1,11 @@
 import { QueryClient } from '@tanstack/react-query'
 import { createRouter as createTanStackRouter } from '@tanstack/react-router'
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
+import { getGlobalStartContext } from '@tanstack/react-start'
 import { routeTree } from './routeTree.gen'
 
 export function getRouter() {
+  const startContext = getGlobalStartContext()
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -18,6 +20,7 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
+    ssr: startContext?.cspNonce ? { nonce: startContext.cspNonce } : undefined,
   })
 
   setupRouterSsrQueryIntegration({ router, queryClient })
