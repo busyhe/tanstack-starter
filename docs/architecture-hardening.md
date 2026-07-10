@@ -152,16 +152,16 @@ Server Function RPC。loader、组件、预取和失效共享同一个 query key
 
 ## 5. 关键架构决策
 
-| 决策   | 选择                                             | 原因                                 | 代价与约束                              |
-| ------ | ------------------------------------------------ | ------------------------------------ | --------------------------------------- |
-| ADR-01 | 公开配置在构建期校验，服务端配置在运行期校验     | 明确客户端可见边界，尽早失败         | `VITE_*` 在容器启动后不可动态修改       |
-| ADR-02 | 使用 `queryOptions` factory 作为数据访问单一入口 | loader、组件和缓存 key 保持一致      | 带参数查询必须把参数完整加入 key        |
-| ADR-03 | 全局中间件统一安全响应与日志                     | 页面、API、Server Function 行为一致  | 新增第三方域名时必须同步审查 CSP        |
-| ADR-04 | CSP 使用每请求 nonce                             | 支持严格脚本策略和 SSR hydration     | 必须把同一 nonce 传给 Router 与外部脚本 |
-| ADR-05 | liveness 与 readiness 分离                       | 容器重启和流量接入采用不同语义       | 当前 readiness 尚未检查外部依赖         |
-| ADR-06 | bumpp 只改版本文件，不自动 Git 操作              | 版本、Commit、Tag、Push 都可人工审查 | 发布步骤比全自动流程多                  |
-| ADR-07 | Docker 基础镜像使用版本加 digest                 | 构建输入可复现、可审计               | 需要 Dependabot 持续更新 digest         |
-| ADR-08 | Pre-commit 只检查，不自动改写暂存文件            | 避免钩子静默修改开发者提交           | 开发者需显式运行 `pnpm format`          |
+| 决策   | 选择                                             | 原因                                | 代价与约束                              |
+| ------ | ------------------------------------------------ | ----------------------------------- | --------------------------------------- |
+| ADR-01 | 公开配置在构建期校验，服务端配置在运行期校验     | 明确客户端可见边界，尽早失败        | `VITE_*` 在容器启动后不可动态修改       |
+| ADR-02 | 使用 `queryOptions` factory 作为数据访问单一入口 | loader、组件和缓存 key 保持一致     | 带参数查询必须把参数完整加入 key        |
+| ADR-03 | 全局中间件统一安全响应与日志                     | 页面、API、Server Function 行为一致 | 新增第三方域名时必须同步审查 CSP        |
+| ADR-04 | CSP 使用每请求 nonce                             | 支持严格脚本策略和 SSR hydration    | 必须把同一 nonce 传给 Router 与外部脚本 |
+| ADR-05 | liveness 与 readiness 分离                       | 容器重启和流量接入采用不同语义      | 当前 readiness 尚未检查外部依赖         |
+| ADR-06 | bumpp 自动 Commit/Tag，包装脚本精确原子 Push     | 减少漏步，避免误推 Tag 和半发布状态 | 命令仍具有显式远端副作用                |
+| ADR-07 | Docker 基础镜像使用版本加 digest                 | 构建输入可复现、可审计              | 需要 Dependabot 持续更新 digest         |
+| ADR-08 | Pre-commit 只检查，不自动改写暂存文件            | 避免钩子静默修改开发者提交          | 开发者需显式运行 `pnpm format`          |
 
 ## 6. 详细改造说明
 
@@ -469,12 +469,20 @@ flowchart LR
 
 #### Release
 
-本地 `pnpm release` 先执行完整 verify，再由 bumpp 修改版本文件。bumpp 不自动 Commit、Tag 或 Push。
+本地 `pnpm release` 是显式的远端发布命令。它先通过
+[`release-preflight.mjs`](../scripts/release-preflight.mjs) 确认工作区干净、当前分支为 `main`、本地与 upstream
+完全同步、根应用版本一致且不存在仅本地 Tag，再执行完整 verify。使用者选择并确认版本后：
+
+1. bumpp 只更新根目录和 `apps/*/package.json`；
+2. bumpp 创建符合 Commitlint 的 `chore(release): v<version>` 提交，并执行 Git hooks；
+3. bumpp 创建 annotated `v<version>` Tag；
+4. [`release-push.mjs`](../scripts/release-push.mjs) 再次校验 release commit、版本文件、Tag、remote 和 upstream；
+5. 使用 `git push --atomic` 只推送当前 `main` 与本次目标 Tag。
 
 Tag 发布流程：
 
-1. Tag 必须严格等于根版本号的 `v<version>`；
-2. Tag 指向的提交必须已经包含在 `origin/main`；
+1. Release workflow 校验 Tag 必须严格等于根版本号的 `v<version>`；
+2. 校验 Tag 指向的提交已经包含在 `origin/main`；
 3. 再次执行 frozen install、完整 verify 和 Docker smoke；
 4. OSV 扫描必须通过；
 5. 只有最终 release job 获得 `contents: write`；
@@ -482,20 +490,25 @@ Tag 发布流程：
 
 ```mermaid
 flowchart TD
-  Bump["pnpm release<br/>验证后只更新版本文件"]
-  Review["人工审查 + Conventional Commit"]
-  Main["提交进入 main"]
-  Tag["创建并推送 v版本 Tag"]
+  Preflight["release preflight<br/>main、clean、upstream 同步、版本一致、无本地独有 Tag"]
+  VerifyLocal["本地 pnpm verify"]
+  Confirm["选择并确认版本"]
+  Commit["自动创建 Conventional Commit"]
+  Tag["自动创建 annotated v版本 Tag"]
+  Push["精确原子 Push<br/>main + 唯一目标 Tag"]
   Verify["校验 Tag、main 祖先、verify、Docker"]
   OSV["OSV 扫描"]
   Release["GitHub Release"]
 
-  Bump --> Review --> Main --> Tag
-  Tag --> Verify
-  Tag --> OSV
+  Preflight --> VerifyLocal --> Confirm --> Commit --> Tag --> Push
+  Push --> Verify
+  Push --> OSV
   Verify --> Release
   OSV --> Release
 ```
+
+如果原子 Push 失败，远端 branch 和 Tag 都不应变化；本地会保留 release commit 与 annotated Tag。修复远端权限、同步或网络
+问题后只运行 `node scripts/release-push.mjs`，不要重新执行 bumpp 选择新版本。
 
 #### 供应链
 
@@ -795,6 +808,9 @@ docker run --rm -p 3000:3000 tanstack-starter
 | 初始化              | [`scripts/init.mjs`](../scripts/init.mjs)                                                     |
 | 生产启动            | [`scripts/start.mjs`](../scripts/start.mjs)                                                   |
 | E2E 调度            | [`scripts/e2e.mjs`](../scripts/e2e.mjs)                                                       |
+| Release preflight   | [`scripts/release-preflight.mjs`](../scripts/release-preflight.mjs)                           |
+| Release atomic push | [`scripts/release-push.mjs`](../scripts/release-push.mjs)                                     |
+| bumpp 配置          | [`bump.config.mjs`](../bump.config.mjs)                                                       |
 | 安全清理            | [`scripts/clean.mjs`](../scripts/clean.mjs)                                                   |
 
 ## 12. 验收结论

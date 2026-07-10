@@ -30,7 +30,7 @@ pnpm check-types    # tsc --noEmit
 pnpm test           # Vitest
 pnpm format         # Prettier 格式化仓库内所有受支持文件
 pnpm commit         # czg 交互式提交
-pnpm release        # bumpp 发版(通常无需代理执行)
+pnpm release        # 验证后 bumpp 自动 Commit/Tag 并由脚本原子 Push,仅在用户明确要求时执行
 ```
 
 ## Git 工作流

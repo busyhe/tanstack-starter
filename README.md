@@ -95,23 +95,23 @@ cp apps/www/.env.example apps/www/.env
 
 ## 常用命令
 
-| 命令                      | 说明                                                |
-| ------------------------- | --------------------------------------------------- |
-| `pnpm dev`                | 启动开发模式                                        |
-| `pnpm build`              | 构建所有应用与包                                    |
-| `pnpm start`              | 运行已构建的生产服务                                |
-| `pnpm lint`               | 运行根目录及各 workspace 的 ESLint                  |
-| `pnpm check-types`        | 执行 TypeScript 类型检查                            |
-| `pnpm test`               | 运行 Vitest                                         |
-| `pnpm test:coverage`      | 运行单元测试并检查覆盖率阈值                        |
-| `pnpm test:e2e`           | 构建并运行 Playwright 端到端测试                    |
-| `pnpm format`             | 使用 Prettier 格式化仓库                            |
-| `pnpm format:check`       | 检查格式但不修改文件                                |
-| `pnpm verify`             | 依次检查格式、Lint、类型、覆盖率、构建和 E2E        |
-| `pnpm clean -- --dry-run` | 预览清理目标                                        |
-| `pnpm clean`              | 清理依赖和构建产物；执行前先使用 `--dry-run`        |
-| `pnpm commit`             | 交互式创建 Conventional Commit                      |
-| `pnpm release`            | 先执行 `verify`，再交互式更新版本；不自动提交或推送 |
+| 命令                      | 说明                                                 |
+| ------------------------- | ---------------------------------------------------- |
+| `pnpm dev`                | 启动开发模式                                         |
+| `pnpm build`              | 构建所有应用与包                                     |
+| `pnpm start`              | 运行已构建的生产服务                                 |
+| `pnpm lint`               | 运行根目录及各 workspace 的 ESLint                   |
+| `pnpm check-types`        | 执行 TypeScript 类型检查                             |
+| `pnpm test`               | 运行 Vitest                                          |
+| `pnpm test:coverage`      | 运行单元测试并检查覆盖率阈值                         |
+| `pnpm test:e2e`           | 构建并运行 Playwright 端到端测试                     |
+| `pnpm format`             | 使用 Prettier 格式化仓库                             |
+| `pnpm format:check`       | 检查格式但不修改文件                                 |
+| `pnpm verify`             | 依次检查格式、Lint、类型、覆盖率、构建和 E2E         |
+| `pnpm clean -- --dry-run` | 预览清理目标                                         |
+| `pnpm clean`              | 清理依赖和构建产物；执行前先使用 `--dry-run`         |
+| `pnpm commit`             | 交互式创建 Conventional Commit                       |
+| `pnpm release`            | 前置检查和 `verify` 后，自动 Commit、Tag 并原子 Push |
 
 首次运行端到端测试前安装 Chromium：
 
@@ -160,12 +160,30 @@ docker run --rm -p 3000:3000 tanstack-starter
 
 ## 发布流程
 
-`pnpm release` 会先执行完整的 `pnpm verify`，然后通过 bumpp 更新版本号。它**不会**自动创建提交、Tag 或推送：
+`pnpm release` 是具有远端副作用的发布命令。它会先确认工作区干净、当前分支为 `main`、本地与 upstream
+完全同步、所有应用版本一致且不存在仅本地 Tag，再执行完整的 `pnpm verify`。选择并确认版本后，发布流程将：
 
-1. 在干净工作区运行 `pnpm release` 并选择版本。
-2. 审查版本变更，再创建 Conventional Commit。
-3. 确认提交已进入 `main`，手动创建与根 `package.json` 版本完全一致的 `v<version>` Tag，并推送提交与 Tag。
-4. `v*` Tag 会触发发布工作流；工作流再次执行验证和 Docker 冒烟测试，通过后创建 GitHub Release。
+1. 同步更新根目录和 `apps/*/package.json` 的版本；
+2. 创建 `chore(release): v<version>` 提交，并正常执行 Git hooks；
+3. 创建 annotated `v<version>` Tag；
+4. 包装脚本向已校验的 remote 原子推送当前 `main` 和唯一目标 Tag；
+5. 由 `v*` Tag 触发发布工作流；工作流再次验证并完成 Docker 冒烟测试和 OSV 扫描，通过后创建 GitHub Release。
+
+跨平台首选在被 Git 忽略的 `apps/www/.env.production.local` 中配置真实站点 URL：
+
+```dotenv
+VITE_SITE_URL=https://your-domain.com
+```
+
+然后运行 `pnpm release`。Bash/zsh 也可以使用一次性变量：
+
+```bash
+VITE_SITE_URL=https://your-domain.com pnpm release
+```
+
+不要在功能分支、存在未提交文件、本地领先/落后 upstream 或存在未发布本地 Tag 时规避前置检查。若原子推送因网络、
+权限、远端更新或分支保护失败，两个远端引用都不会更新；修复问题后只运行
+`node scripts/release-push.mjs`，不要重新执行 bumpp 或再次提升版本。
 
 ## 贡献与许可
 

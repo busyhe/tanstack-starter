@@ -2,8 +2,11 @@ import { defineConfig } from 'bumpp'
 
 export default defineConfig({
   all: false,
-  commit: false,
+  commit: 'chore(release): v%s',
+  confirm: true,
+  ignoreScripts: true,
   noGitCheck: false,
+  noVerify: false,
   push: false,
-  tag: false,
+  tag: 'v%s',
 })

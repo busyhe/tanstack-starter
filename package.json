@@ -14,7 +14,7 @@
     "format:check": "prettier --cache --ignore-unknown --check .",
     "lint": "pnpm lint:root && turbo lint",
     "lint:root": "eslint . --max-warnings 0",
-    "release": "pnpm verify && bumpp package.json apps/*/package.json",
+    "release": "node ./scripts/release-preflight.mjs && pnpm verify && bumpp package.json apps/*/package.json && node ./scripts/release-push.mjs",
     "scaffold:init": "node ./scripts/init.mjs",
     "start": "pnpm --filter www start",
     "test": "turbo test",
