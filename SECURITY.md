@@ -25,3 +25,11 @@
 - 在生产环境启用 HTTPS，并确认反向代理/CDN 正确配置 HSTS、安全响应头和可信转发头。
 - 定期检查 Dependabot、OSV Scanner 和锁文件更新结果。
 - 使用受支持的 Node.js 与 pnpm 版本，并以非 root 用户运行容器。
+
+## 依赖安全下限
+
+根 `package.json` 中的 `pnpm.overrides` 仅用于把存在已知漏洞的传递依赖提升到同一 major 内的已修复版本，
+不得用它跨 major 强制替换不兼容依赖，也不得以删除 override 的方式规避 OSV 门禁。
+
+当上游父依赖已经声明安全版本下限后，可以逐项删除对应 override。删除前后都应使用 `pnpm why -r <package>`
+确认依赖路径，重新生成锁文件，并依次通过生产依赖审计、完整 OSV 扫描和 `pnpm verify`。
