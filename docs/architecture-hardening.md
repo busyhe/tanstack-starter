@@ -484,9 +484,10 @@ Tag 发布流程：
 1. Release workflow 校验 Tag 必须严格等于根版本号的 `v<version>`；
 2. 校验 Tag 指向的提交已经包含在 `origin/main`；
 3. 再次执行 frozen install、完整 verify 和 Docker smoke；
-4. OSV 扫描必须通过；
+4. OSV 扫描仅作信息披露，不阻断发布（日常监控由 `osv.yml` 定时任务承担）；
 5. 只有最终 release job 获得 `contents: write`；
-6. 使用 `gh release create --generate-notes --verify-tag` 创建 GitHub Release。
+6. 使用固定版本的 `changelogithub` 基于 Conventional Commits 生成分组 Changelog 并创建 GitHub Release；
+7. workflow 支持 `workflow_dispatch`（输入 Tag 名），用于发布失败后手动补建 Release。
 
 ```mermaid
 flowchart TD
@@ -497,14 +498,13 @@ flowchart TD
   Tag["自动创建 annotated v版本 Tag"]
   Push["精确原子 Push<br/>main + 唯一目标 Tag"]
   Verify["校验 Tag、main 祖先、verify、Docker"]
-  OSV["OSV 扫描"]
-  Release["GitHub Release"]
+  OSV["OSV 扫描（仅信息披露）"]
+  Release["GitHub Release<br/>changelogithub 生成 Changelog"]
 
   Preflight --> VerifyLocal --> Confirm --> Commit --> Tag --> Push
   Push --> Verify
   Push --> OSV
   Verify --> Release
-  OSV --> Release
 ```
 
 如果原子 Push 失败，远端 branch 和 Tag 都不应变化；本地会保留 release commit 与 annotated Tag。修复远端权限、同步或网络

@@ -4,13 +4,22 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to (re)publish, e.g. v1.0.0'
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
+
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   verify:
@@ -21,12 +30,13 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
+          ref: ${{ inputs.tag || github.ref_name }}
           fetch-depth: 0
 
       - name: Validate release tag
         run: |
-          node -e "const { version } = require('./package.json'); const expected = 'v' + version; if (process.env.GITHUB_REF_NAME !== expected) throw new Error('Expected tag ' + expected + ', received ' + process.env.GITHUB_REF_NAME)"
-          if ! git merge-base --is-ancestor "${GITHUB_SHA}" origin/main; then
+          node -e "const { version } = require('./package.json'); const expected = 'v' + version; if (process.env.RELEASE_TAG !== expected) throw new Error('Expected tag ' + expected + ', received ' + process.env.RELEASE_TAG)"
+          if ! git merge-base --is-ancestor "$(git rev-parse HEAD)" origin/main; then
             echo "::error::Release tags must point to a commit already contained in main"
             exit 1
           fi
@@ -49,7 +59,7 @@ jobs:
         run: |
           docker build \
             --build-arg VITE_SITE_URL="${VITE_SITE_URL}" \
-            --build-arg APP_VERSION="${GITHUB_SHA}" \
+            --build-arg APP_VERSION="$(git rev-parse HEAD)" \
             --tag tanstack-starter:release-smoke .
           container_id="$(docker run --detach --publish 127.0.0.1:3101:3000 tanstack-starter:release-smoke)"
           cleanup() {
@@ -61,7 +71,10 @@ jobs:
             --retry 20 --retry-delay 1 --retry-all-errors \
             http://127.0.0.1:3101/api/health/ready
 
+  # Informational only: surfaces newly disclosed CVEs on the release run without
+  # blocking the GitHub Release (daily osv.yml remains the monitoring source).
   osv:
+    if: github.event_name == 'push'
     permissions:
       actions: read
       contents: read
@@ -69,7 +82,7 @@ jobs:
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@9a498708959aeaef5ef730655706c5a1df1edbc2 # v2.3.8
 
   release:
-    needs: [verify, osv]
+    needs: [verify]
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -78,9 +91,20 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
+          ref: ${{ inputs.tag || github.ref_name }}
           fetch-depth: 0
 
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.22.3
+
       - name: Create GitHub Release
-        run: gh release create "${GITHUB_REF_NAME}" --generate-notes --verify-tag
+        run: |
+          previous_tag="$(git describe --tags --abbrev=0 "${RELEASE_TAG}^" 2>/dev/null || true)"
+          if [ -n "${previous_tag}" ]; then
+            npx changelogithub@14.0.0 --from "${previous_tag}" --to "${RELEASE_TAG}"
+          else
+            npx changelogithub@14.0.0 --to "${RELEASE_TAG}"
+          fi
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
