@@ -1,5 +1,5 @@
 # Build stage
-FROM node:22.22-alpine@sha256:e58326d0d441090181ac150dc2078d3e2cf6a0d42e809aebba3ef5880935ffdd AS builder
+FROM node:26.4-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS builder
 RUN corepack enable
 WORKDIR /app
 ENV LEFTHOOK=0
@@ -33,7 +33,7 @@ RUN test -n "${VITE_SITE_URL}"
 RUN pnpm build
 
 # Runtime stage — nitro node-server output is self-contained
-FROM node:22.22-alpine@sha256:e58326d0d441090181ac150dc2078d3e2cf6a0d42e809aebba3ef5880935ffdd AS runner
+FROM node:26.4-alpine@sha256:725aeba2364a9b16beae49e180d83bd597dbd0b15c47f1f28875c290bfd255b9 AS runner
 ENV NODE_ENV=production
 WORKDIR /app
 ARG APP_VERSION=development
