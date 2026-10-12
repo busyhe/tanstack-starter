@@ -11,8 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiHealthRouteImport } from './routes/api.health'
-import { Route as ApiHealthReadyRouteImport } from './routes/api.health.ready'
 import { Route as ApiHealthLiveRouteImport } from './routes/api.health.live'
+import { Route as ApiHealthReadyRouteImport } from './routes/api.health.ready'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,14 +24,14 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiHealthReadyRoute = ApiHealthReadyRouteImport.update({
-  id: '/ready',
-  path: '/ready',
-  getParentRoute: () => ApiHealthRoute,
-} as any)
 const ApiHealthLiveRoute = ApiHealthLiveRouteImport.update({
   id: '/live',
   path: '/live',
+  getParentRoute: () => ApiHealthRoute,
+} as any)
+const ApiHealthReadyRoute = ApiHealthReadyRouteImport.update({
+  id: '/ready',
+  path: '/ready',
   getParentRoute: () => ApiHealthRoute,
 } as any)
 
@@ -60,11 +60,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/api/health' | '/api/health/live' | '/api/health/ready'
   id:
-    | '__root__'
-    | '/'
-    | '/api/health'
-    | '/api/health/live'
-    | '/api/health/ready'
+    '__root__' | '/' | '/api/health' | '/api/health/live' | '/api/health/ready'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -88,18 +84,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/health/ready': {
-      id: '/api/health/ready'
-      path: '/ready'
-      fullPath: '/api/health/ready'
-      preLoaderRoute: typeof ApiHealthReadyRouteImport
-      parentRoute: typeof ApiHealthRoute
-    }
     '/api/health/live': {
       id: '/api/health/live'
       path: '/live'
       fullPath: '/api/health/live'
       preLoaderRoute: typeof ApiHealthLiveRouteImport
+      parentRoute: typeof ApiHealthRoute
+    }
+    '/api/health/ready': {
+      id: '/api/health/ready'
+      path: '/ready'
+      fullPath: '/api/health/ready'
+      preLoaderRoute: typeof ApiHealthReadyRouteImport
       parentRoute: typeof ApiHealthRoute
     }
   }

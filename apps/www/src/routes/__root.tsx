@@ -63,7 +63,11 @@ function RootError({ error }: ErrorComponentProps) {
       <section className="max-w-lg text-center" aria-live="polite">
         <h1 className="text-3xl font-semibold">Something went wrong</h1>
         <p className="mt-4 text-muted-foreground">The page could not be loaded. Please retry or return home.</p>
-        {import.meta.env.DEV && <pre className="mt-4 overflow-auto text-left text-sm">{error.message}</pre>}
+        {import.meta.env.DEV && (
+          <pre className="mt-4 overflow-auto text-left text-sm">
+            {error instanceof Error ? error.message : 'Unknown error'}
+          </pre>
+        )}
         <div className="mt-6 flex justify-center gap-2">
           <Button type="button" onClick={() => void router.invalidate({ forcePending: true })}>
             Retry
